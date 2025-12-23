@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>네이버 CSV 업로드</title>
+  <link rel="stylesheet" href="Style.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- ===== 좌측 최근 등록 패널 ===== -->
+    <aside id="sidebar" class="sidebar">
+      <button id="sidebarToggle" class="sidebar-toggle" type="button">
+        <span class="sidebar-toggle-icon">❮</span>
+      </button>
+      <div class="sidebar-header">
+        <div class="sidebar-top">
+          <div class="sidebar-title">최근 등록 파일</div>
+          <!-- DEV용 최근 목록 리셋 버튼 -->
+          <button type="button" class="dev-reset-btn" id="devResetRecent">
+            Dev 초기화
+          </button>
+        </div>
+
+        <div class="sidebar-main">
+          <div class="sidebar-section-title">
+            <span class="dot"></span>
+            <span>마지막 20개 업로드 기록</span>
+          </div>
+          <ul id="recentList" class="recent-list"></ul>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===== 메인 업로드 카드 ===== -->
+    <main class="main-area">
+      <div class="container">
+        <h1 class="title">
+          네이버 CSV 업로드
+          <span class="title-badge">PASA 내부용</span>
+        </h1>
+        <p class="subtitle">
+          네이버 스마트스토어에서 받은 리뷰 CSV를 업로드하면, 파사몰용 엑셀로 자동 변환됩니다.
+        </p>
+
+        <form id="uploadForm" enctype="multipart/form-data">
+          <!-- 업로드 영역 -->
+          <div class="field-group">
+            <span class="field-label">CSV / 엑셀 파일</span>
+            <div id="dropzone" class="dropzone">
+              <div class="drop-icon">📁</div>
+              <div class="drop-title">여기로 파일을 끌어다 놓거나 클릭해서 선택하세요</div>
+              <div class="drop-sub">지원 형식: <strong>.xls, .xlsx</strong> / 최대 1개</div>
+            </div>
+            <input
+              id="fileInput"
+              class="file-input"
+              type="file"
+              name="excel"
+              accept=".xls,.xlsx"
+              required
+            />
+            <div id="fileInfo" class="file-info">
+              <span id="fileName"></span>
+              <span id="fileSize"></span>
+            </div>
+            <div id="fileError" class="error" style="display:none;"></div>
+          </div>
+
+          <!-- 스토어 선택 -->
+          <div class="field-group">
+            <span class="field-label">스토어 선택</span>
+            <div class="checkbox-row">
+              <label class="checkbox-pill" id="pill-pasa">
+                <input type="checkbox" name="product" value="파사 코골이" />
+                <span>파사 코골이</span>
+              </label>
+              <label class="checkbox-pill" id="pill-smart">
+                <input type="checkbox" name="product" value="스마트 파사 코골이" />
+                <span>스마트 파사 코골이</span>
+              </label>
+            </div>
+            <div class="hint">두 스토어 중 <strong>하나만</strong> 선택할 수 있습니다.</div>
+            <div id="storeError" class="error" style="display:none;"></div>
+          </div>
+
+          <!-- 비밀번호 -->
+          <div class="field-group">
+            <label class="field-label" for="secret">관리자 비밀번호</label>
+            <input type="password" id="secret" name="secret" required />
+            <div id="secretError" class="error" style="display:none;"></div>
+          </div>
+
+          <div class="footer">
+            <span>※ 이 페이지는 내부용입니다. 링크와 비밀번호는 외부에 공유하지 마세요.</span>
+            <div class="btn-row">
+              <button type="button" class="btn btn-secondary" id="resetBtn">초기화</button>
+              <button type="submit" class="btn btn-primary">업로드</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <!-- ===== 업로드 성공 모달 ===== -->
+  <div id="overlay" class="overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div class="modal-icon">⬆️</div>
+      </div>
+      <div class="modal-title">업로드 완료</div>
+      <div class="modal-text">파일이 성공적으로 업로드되었습니다.</div>
+
+      <div class="modal-file">
+        <div class="modal-file-icon">📄</div>
+        <div class="modal-file-name" id="modalFileName"></div>
+        <div style="font-size:0.75rem; color:#16a34a;" id="modalFileSize"></div>
+      </div>
+
+      <div class="modal-badges">
+        <span class="badge-store" id="modalStore"></span>
+      </div>
+
+      <div class="modal-btn-row">
+        <button type="button" class="btn btn-secondary" id="modalCancel">닫기</button>
+        <button type="button" class="btn btn-primary" id="modalOk">다음 단계</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 에러 모달 ===== -->
+  <div id="errorOverlay" class="overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <div class="modal-icon error-icon">⚠️</div>
+      </div>
+      <div class="modal-title" id="errorTitle">업로드 실패</div>
+      <div class="modal-text" id="errorMessage">
+        업로드 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+      </div>
+      <div class="modal-btn-row">
+        <button type="button" class="btn btn-primary" id="errorClose">확인</button>
+      </div>
+    </div>
+  </div>
+  <script src="JavaScript.js"> </script>
+</body>
+</html>
